@@ -1,0 +1,16 @@
+FROM python:3.10-slim
+WORKDIR /app
+ENV PIP_DEFAULT_TIMEOUT=1000
+ENV PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+# Cài đặt các thư viện API, Database, và OpenAI
+RUN pip install fastapi uvicorn requests pydantic psycopg2-binary openai websockets==13.1 python-dotenv
+# Cài đặt Pytorch và Transformers để chạy mô hình AI (PhoBERT ETD)
+RUN pip install torch --index-url https://download.pytorch.org/whl/cpu \
+    && pip install transformers
+# Copy toàn bộ source code, file txt, file json và thư mục model phobert_endturn vào Container
+COPY ai_server.py /app/
+COPY phobert_endturn/ /app/phobert_endturn/
+COPY fillers/ /app/fillers/
+COPY prompt.txt /app/
+# Chạy server ở port 8000
+CMD ["uvicorn", "ai_server:app", "--host", "0.0.0.0", "--port", "8000"]
