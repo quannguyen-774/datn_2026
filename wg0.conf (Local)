@@ -1,0 +1,14 @@
+[Interface]
+Address = 10.8.0.2/24
+PrivateKey = $PRIVATEKEY_LOCAL
+PostUp = sysctl -w net.ipv4.ip_forward=1
+PostUp = iptables -t nat -A PREROUTING -i wg0 -d 10.8.0.2 -j DNAT --to-destination 192.168.1.18
+PostDown = iptables -t nat -D PREROUTING -i wg0 -d 10.8.0.2 -j DNAT --to-destination 192.168.1.18
+
+[Peer]
+# Đây là Public Key của con VPS trên mạng
+PublicKey = $PUBLICKEY_VPS
+Endpoint = 160.30.50.103:51820
+AllowedIPs = 10.8.0.0/24
+# Thần chú giữ mạng xuyên qua wifi/4G
+PersistentKeepalive = 25
