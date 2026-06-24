@@ -1,0 +1,40 @@
+services:
+  fusionpbx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    Image: fusionpbx_ute
+    Container_name: fusionpbx
+    restart: always
+    cap_add:
+      - SYS_NICE
+      - NET_ADMIN
+    network_mode: "host"
+    ulimits:
+      core: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - db_data:/var/lib/postgresql
+      - fs_data:/etc/freeswitch
+      - web_data:/var/www/fusionpbx
+      - log_data:/var/log
+      - ./fillers:/var/lib/freeswitch/recordings/fillers
+
+  ai_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai
+    Image: ai_bot_ute
+    Container_name: ai_bot
+    restart: always
+    network_mode: "host"
+    volumes:
+      - ./ai_server.py:/app/ai_server.py
+
+volumes:
+  db_data:
+  fs_data:
+  web_data:
+  log_data:
