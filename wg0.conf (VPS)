@@ -1,0 +1,20 @@
+[Interface]
+Address = 10.8.0.1/24
+ListenPort = 51820
+PrivateKey = $PRIVATEKEY_VPS
+PostUp = sysctl -w net.ipv4.ip_forward=1
+# --- FORWARD PORT WEB để quản lý từ xa ---
+PostUp = iptables -t nat -A PREROUTING -i eth0 -p tcp -m multiport --dports 80,443 -j DNAT --to-destination 10.8.0.2
+PostDown = iptables -t nat -D PREROUTING -i eth0 -p tcp -m multiport --dports 80,443 -j DNAT --to-destination 10.8.0.2
+# --- FORWARD PORT SIP & RTP để gọi điện có tiếng, không bị điếc ---
+PostUp = iptables -t nat -A PREROUTING -i eth0 -p udp -m multiport --dports 5060,5080 -j DNAT --to-destination 10.8.0.2
+PostUp = iptables -t nat -A PREROUTING -i eth0 -p udp --dport 16384:32768 -j DNAT --to-destination 10.8.0.2
+PostDown = iptables -t nat -D PREROUTING -i eth0 -p udp -m multiport --dports 5060,5080 -j DNAT --to-destination 10.8.0.2
+PostDown = iptables -t nat -D PREROUTING -i eth0 -p udp --dport 16384:32768 -j DNAT --to-destination 10.8.0.2
+# --- Tránh lỗi đường truyền bất đối xứng ---
+PostUp = iptables -t nat -A POSTROUTING -o wg0 -j MASQUERADE
+PostDown = iptables -t nat -D POSTROUTING -o wg0 -j MASQUERADE
+
+[Peer]
+PublicKey = $PUBLICKEY_LOCAL
+AllowedIPs = 10.8.0.2/32
